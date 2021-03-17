@@ -1,6 +1,7 @@
 const path = require ('path');
 const {randomNumber} = require('../helpers/libs');
 const fs= require('fs-extra');
+const {Image} = require('../models/index')
 const ctrl = {}
 //controlador para mostrar imagenes
 ctrl.index = (req,res)=>{
@@ -22,6 +23,20 @@ ctrl.create = async (req,res)=>{
         //la funcion rename del modulo importado filesystem mueve un archivo de una carpeta a otra
         // y funciona asincronamente
         await fs.rename(imageTempPath,targetPath);
+
+        const newImg = new Image({
+            title:req.body.title,
+            filename: imgUrl + ext,
+            description: req.body.description,
+        });
+        //para guardarlo en la base de datos
+        const imageSaved = await newImg.save();
+        res.send("Guardado en la base de datos")
+    }else{
+        //elimina la imagen de la carpeta temporal
+        //si no cumple con los formatos
+       await fs.unlink(imageTempPath)
+       res.status(500).json({error:'Formato no permitido'});
     }
     res.send("Works")
 }
